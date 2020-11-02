@@ -4,18 +4,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientHandler implements Runnable {
     private Server server;
     private PrintWriter out;
     private Scanner in;
     private Socket clientSocket = null;
-    private static int clients_count = 0;
+
+    private static AtomicInteger clientsCount = new AtomicInteger(0);
     private String clientName = "";
 
     public ClientHandler(Socket socket, Server server) {
         try {
-            clients_count++;
+            clientsCount.incrementAndGet();
             this.server = server;
             this.clientSocket = socket;
             this.out = new PrintWriter(socket.getOutputStream());
@@ -28,7 +30,6 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            while (true) {
                 if (in.hasNext()) {
                     clientName = in.nextLine();
                     Thread.currentThread().setName(clientName);
@@ -36,12 +37,10 @@ public class ClientHandler implements Runnable {
                             Thread.currentThread().getName());
                     server.sendMessageToAllClients(message);
                     server.writeToLogFile(message);
-                    server.sendMessageToAllClients("Клиентов в чате = " + clients_count);
-                    break;
+                    server.sendMessageToAllClients("Клиентов в чате = " + clientsCount);
                 }
-            }
 
-            while (true) {
+            while (!clientSocket.isClosed()) {
                 if (in.hasNext()) {
                     String clientMessage = in.nextLine();
                     if (clientMessage.equalsIgnoreCase("exit")) {
@@ -76,7 +75,7 @@ public class ClientHandler implements Runnable {
 
     public void close() {
         server.removeClient(this);
-        clients_count--;
-        server.sendMessageToAllClients("Клиентов в чате = " + clients_count);
+        clientsCount.decrementAndGet();
+        server.sendMessageToAllClients("Клиентов в чате = " + clientsCount);
     }
 }

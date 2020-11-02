@@ -2,6 +2,7 @@ package server;
 
 public class MainServer {
     public static void main(String[] args) {
-        new Server("./src/main/java/server/settings/settings");
+       Server server = new Server("./src/settings/settings");
+       server.listen();
     }
 }

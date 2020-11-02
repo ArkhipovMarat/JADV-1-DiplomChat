@@ -14,24 +14,29 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Server {
-    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    private final String logFilePath = "./src/main/java/server/dataLog/logFile";
+    private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    private final List<ClientHandler> clients = new ArrayList<>();
 
     private LocalDateTime now;
     private int port;
-    private String logfilePath;
-
     private Socket clientSocket;
     private ServerSocket serverSocket;
     private FileWriter fileWriter;
 
-    private final ArrayList<ClientHandler> clients = new ArrayList<>();
-
     public Server(String settingsPath) {
         try {
-            serverInitialization(settingsPath);
+            initServer(settingsPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void listen() {
+        try {
             while (true) {
                 clientSocket = serverSocket.accept();
                 ClientHandler client = new ClientHandler(clientSocket, this);
@@ -69,10 +74,8 @@ public class Server {
             Settings settings = gson.fromJson(new FileReader(path), Settings.class);
             if (settings != null) {
                 String portFromJson = settings.getPort();
-                String logFileFromJson = settings.getLogFilePath();
-                if (!("".equals(portFromJson)) & !("".equals(logFileFromJson))) {
+                if (!("".equals(portFromJson))) {
                     port = Integer.parseInt(portFromJson);
-                    logfilePath = logFileFromJson;
                     return true;
                 }
             } else {
@@ -90,14 +93,14 @@ public class Server {
         return msg;
     }
 
-    private void serverInitialization(String settingsPath) throws IOException {
+    private void initServer(String settingsPath) throws IOException {
         if (!readSettings(settingsPath)) {
             System.out.println("Сервер не запущен!");
             System.out.println("ошибка в файле settings");
             System.exit(1);
         } else {
             serverSocket = new ServerSocket(port);
-            fileWriter = new FileWriter(logfilePath, true);
+            fileWriter = new FileWriter(logFilePath, true);
             System.out.println("Сервер запущен!");
         }
     }

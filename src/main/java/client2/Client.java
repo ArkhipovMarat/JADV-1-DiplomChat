@@ -10,15 +10,15 @@ import java.util.Scanner;
 
 
 public class Client {
+    private final String logfilePath = "./src/main/java/client2/dataLog/logFile";
     private BufferedReader in;
     private PrintWriter out;
     private Socket socket;
     private Scanner scanner;
-    FileWriter fileWriter;
+    private FileWriter fileWriter;
 
     private int port;
     private String ip;
-    private String logfilePath;
 
     public Client(String settingsPath) {
         try {
@@ -64,12 +64,10 @@ public class Client {
             if (settings != null) {
                 String portFromJson = settings.getPort();
                 String hostFromJson = settings.getHost();
-                String logFilePathFromJson = settings.getLogFilePath();
 
-                if (!("".equals(portFromJson)) & !("".equals(hostFromJson)) & !("".equals(logFilePathFromJson))) {
+                if (!("".equals(portFromJson)) & !("".equals(hostFromJson))) {
                     port = Integer.parseInt(portFromJson);
                     ip = hostFromJson;
-                    logfilePath = logFilePathFromJson;
                     return true;
                 }
             } else {
